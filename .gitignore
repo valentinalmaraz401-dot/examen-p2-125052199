@@ -1,0 +1,6 @@
+*.csv
+ventas_*.csv
+__pycache__/
+*.pyc
+.env
+mapreduce/salida/
