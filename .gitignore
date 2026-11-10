@@ -1,6 +1,17 @@
+# Excluir el dataset masivo (REQUISITO EXAMEN)
 *.csv
 ventas_*.csv
+
+# Excluir entornos virtuales y archivos temporales de Python
 __pycache__/
 *.pyc
+env/
+venv/
+.venv/
+
+# Excluir salidas temporales sueltas
+part-*
+
+# Excluir variables sensibles si usas un .env real
 .env
-mapreduce/salida/
+!.env.example

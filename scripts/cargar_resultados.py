@@ -20,27 +20,27 @@ def cargar_datos(filepath):
     cur = conn.cursor()
     cur.execute("TRUNCATE TABLE resultados;")
 
+    registros = []
     with open(filepath, 'r', encoding='utf-8') as f:
         for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            parts = line.split("\t")
-            if len(parts) == 2:
-                clave, valor = parts[0], float(parts[1])
-                subclave = ""
-            elif len(parts) == 3:
-                clave, subclave, valor = parts[0], parts[1], float(parts[2])
-            else:
-                continue
-            
-            cur.execute(
-                "INSERT INTO resultados (clave, subclave, valor) VALUES (%s, %s, %s);",
-                (clave, subclave, valor)
-            )
+            parts = line.strip().split()  # Maneja cualquier número de espacios/tabs
+            if len(parts) >= 3:
+                clave = parts[0]
+                subclave = " ".join(parts[1:-1])
+                try:
+                    valor = float(parts[-1])
+                    registros.append((clave, subclave, valor))
+                except ValueError:
+                    continue
+
+    if registros:
+        cur.executemany(
+            "INSERT INTO resultados (clave, subclave, valor) VALUES (%s, %s, %s);",
+            registros
+        )
 
     conn.commit()
-    print("Resultados cargados exitosamente a la base de datos.")
+    print(f"Éxito: {len(registros)} resultados cargados a la base de datos.")
     cur.close()
     conn.close()
 

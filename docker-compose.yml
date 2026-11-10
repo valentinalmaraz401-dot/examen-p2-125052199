@@ -1,0 +1,55 @@
+
+networks:
+  datamart-network:
+    driver: bridge
+
+volumes:
+  pgdata:
+
+services:
+  hadoop:
+    build:
+      context: ./hadoop
+      dockerfile: Dockerfile
+    container_name: datamart-hadoop
+    volumes:
+      - ./:/data/input:ro
+      - ./mapreduce:/mapreduce
+    networks:
+      - datamart-network
+    restart: always
+
+  db:
+    image: postgres:15-alpine
+    container_name: datamart-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-datamart}
+      POSTGRES_USER: ${POSTGRES_USER:-hadoop_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hadoop_pass}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - datamart-network
+    restart: always
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: datamart-api
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      DB_HOST: db
+      DB_NAME: ${POSTGRES_DB:-datamart}
+      DB_USER: ${POSTGRES_USER:-hadoop_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-hadoop_pass}
+      DB_PORT: ${POSTGRES_PORT:-5432}
+    volumes:
+      - ./scripts:/app/scripts
+      - ./mapreduce:/app/mapreduce
+    depends_on:
+      - db
+    networks:
+      - datamart-network
+    restart: always
